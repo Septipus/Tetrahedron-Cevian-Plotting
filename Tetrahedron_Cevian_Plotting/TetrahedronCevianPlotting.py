@@ -201,11 +201,11 @@ class TetrahedronCevianPlotting:
 
     def get_plotting_coords(self, rvals):
         '''Generate the cartesian plotting coordinates for a set of state values
-           based on the chosen plotting type (triangle, tetrahedron)
+        based on the chosen plotting type (triangle, tetrahedron)
 
-           The raw_values must be of the appropriate length required for the 
-           chosen plotting type (e.g. 3 state values to generate 2D trangle plot
-           & 4 state values required to generate 3D tetrahedron plot)
+        The raw_values must be of the appropriate length required for the 
+        chosen plotting type (e.g. 3 state values to generate 2D trangle plot
+        & 4 state values required to generate 3D tetrahedron plot)
 
         Parameters
         ----------
@@ -291,30 +291,50 @@ class TetrahedronCevianPlotting:
         return dict(p_values)
 
     def get_colorscale(self):
+        colorscale = ['#000086',
+                      '#000086',
+                      '#000086',
+                      '#000086',
+                      '#000086',
+                      '#000086',
+                      '#33198d',
+                      '#4f2f94',
+                      '#674398',
+                      '#b23978',
+                      '#c95366',
+                      '#de6c47',
+                      '#f28500',
+                      '#918a42',
+                      '#a59659',
+                      '#b4a36f',
+                      '#c2b186',
+                      '#cdc09e',
+                      '#d7cfb5',
+                      '#dfdfcd',
+                      '#000086',
+                      '#33198d',
+                      '#4f2f94',
+                      '#674398',
+                      '#b23978',
+                      '#c95366',
+                      '#de6c47',
+                      '#f28500',
+                      '#918a42',
+                      '#a59659',
+                      '#b4a36f',
+                      '#c2b186',
+                      '#cdc09e',
+                      '#d7cfb5',
+                      '#dfdfcd',
+                      ]
 
-        #import cmocean
-        #def cmocean_to_plotly(cmap, pl_entries):
-        #    h = 1.0/(pl_entries-1)
-        #   pl_colorscale = []
-
-        #    for k in range(pl_entries):
-        #        C = list(map(np.uint8, np.array(cmap(k*h)[:3])*255))
-        #        pl_colorscale.append([k*h, 'rgb'+str((C[0], C[1], C[2]))])
-
-        #    return pl_colorscale
-        #colorscale = cmocean_to_plotly(cmocean.cm.haline, 4096)
-
-        colorscale = [[0.0, '#543005'],
-                      [0.1, '#8c510a'],
-                      [0.2, '#bf812d'],
-                      [0.3, '#dfc27d'],
-                      [0.4, '#f6e8c3'],
-                      [0.5, '#f5f5f5'],
-                      [0.6, '#c7eae5'],
-                      [0.7, '#80cdc1'],
-                      [0.8, '#35978f'],
-                      [0.9, '#01665e'],
-                      [1.0, '#003c30']]
+        colorscale = [[val, color]
+                      for val, color in zip(np.linspace(start=0.0,
+                                                        stop=1.0,
+                                                        num=len(colorscale)),
+                                            colorscale
+                                            )
+                      ]
 
         return colorscale
 
@@ -333,29 +353,37 @@ class TetrahedronCevianPlotting:
         ------
 
         '''
-        # single or multiple plots ?
 
         plot_traces = []
         fig = None
         colorscale = self.get_colorscale()
         print('Generating Traces: ')
+
         if self.ptype == 'triangle':
+            x_vals, y_vals, colors, text = [], [], [], []
+
             for t_id, data in tqdm(pdata.items()):
-                tcolor = [tlabels[t_id]] * len(pdata[t_id]['x'])
-                plot_traces.append(go.Scattergl({'name': tlabels[t_id],
-                                                 'mode': 'markers',
-                                                 'x': pdata[t_id]['x'],
-                                                 'y': pdata[t_id]['y'],
-                                                 'marker': {'symbol': 'circle',
-                                                            #'color': tcolor,
-                                                            'colorbar': {'title': 'r-value'},
-                                                            'colorscale': colorscale,
-                                                            'size': 2.5,
-                                                            'opacity': 0.75
-                                                            }
-                                                 }
-                                                )
-                                   )
+                tcolor = tlabels[t_id]
+
+                for x_val, y_val in zip(pdata[t_id]['x'], pdata[t_id]['y']):
+                    x_vals.append(x_val)
+                    y_vals.append(y_val)
+                    colors.append(tcolor)
+
+            plot_traces.append(go.Scattergl({'name': tlabels[t_id],
+                                             'mode': 'markers',
+                                             'x': x_vals,
+                                             'y': y_vals,
+                                             'marker': {'symbol': 'circle',
+                                                        'color': colors,
+                                                        'colorbar': {'title': 'r-value'},
+                                                        'colorscale': colorscale,
+                                                        'size': 2.5,
+                                                        'opacity': 0.75
+                                                        }
+                                             }
+                                            )
+                               )
 
             v_x, v_y, v_text = [], [], []
             v_coords = [(1, 0, 0), (0, 1, 0), (0, 0, 1)]
@@ -370,7 +398,7 @@ class TetrahedronCevianPlotting:
                                              'text': v_text,
                                              'marker': {'symbol': 'circle',
                                                         'color': 'rgb(245, 245, 245)',
-                                                        'size': 10,
+                                                        'size': 8,
                                                         'opacity': 1.0
                                                         }
                                              }
@@ -397,22 +425,33 @@ class TetrahedronCevianPlotting:
                               )
 
         else:
+            x_vals, y_vals, z_vals, colors, text = [], [], [], [], []
+
             for t_id, data in tqdm(pdata.items()):
-                tcolor = [tlabels[t_id]] * len(pdata[t_id]['x'])
-                plot_traces.append(go.Scatter3d({'name': tlabels[t_id],
-                                                 'mode': 'markers',
-                                                 'x': pdata[t_id]['x'],
-                                                 'y': pdata[t_id]['y'],
-                                                 'z': pdata[t_id]['z'],
-                                                 'marker': {'symbol': 'circle',
-                                                            #'color': tcolor,
-                                                            'colorscale': colorscale,
-                                                            'size': 2.5,
-                                                            'opacity': 0.75
-                                                            }
-                                                 }
-                                                )
-                                   )
+                tcolor = tlabels[t_id]
+
+                for x_val, y_val, z_val in zip(pdata[t_id]['x'],
+                                               pdata[t_id]['y'],
+                                               pdata[t_id]['z']):
+                    x_vals.append(x_val)
+                    y_vals.append(y_val)
+                    z_vals.append(z_val)
+                    colors.append(tcolor)
+
+            plot_traces.append(go.Scatter3d({'mode': 'markers',
+                                             'x': x_vals,
+                                             'y': y_vals,
+                                             'z': z_vals,
+                                             'marker': {'symbol': 'circle',
+                                                        'color': colors,
+                                                        'colorbar': {'title': 'r-value'},
+                                                        'colorscale': colorscale,
+                                                        'size': 2.5,
+                                                        'opacity': 0.75
+                                                        }
+                                             }
+                                            )
+                               )
 
             # add vericies traces
             v_x, v_y, v_z, v_text = [], [], [], []
@@ -449,8 +488,8 @@ class TetrahedronCevianPlotting:
                                                           t=0,
                                                           pad=0
                                                           ),
-                               'paper_bgcolor': 'rgba(64,64,64,0.5)',
-                               'plot_bgcolor': 'rgba(64,64,64,0.5)',
+                               'paper_bgcolor': 'rgba(16,16,16,0.75)',
+                               'plot_bgcolor': 'rgba(16,16,16,0.75)',
                                'scene': {'xaxis': {'showbackground': False},
                                          'yaxis': {'showbackground': False},
                                          'zaxis': {'showbackground': False}
@@ -477,5 +516,3 @@ class TetrahedronCevianPlotting:
         # Process raw data to get cartesian points
         plotting_values = self.process_data(rawdata)
         self.generate_plots(plotting_values, labels)
-
-        plotting_values
